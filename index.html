@@ -127,7 +127,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            border: px solid;
+            border: 1px solid;
         }
         .sala-bloco-a {
             background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
@@ -156,6 +156,18 @@
         }
         .input-premium:focus {
             box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.15), 0 4px 12px rgba(244, 121, 32, 0.1);
+        }
+
+        .btn-limpar {
+            transition: all 0.2s ease;
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+            border: 1px solid #D1D5DB;
+        }
+        .btn-limpar:hover {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            border-color: #FCA5A5;
+            color: #B91C1C;
+            transform: translateY(-1px);
         }
 
         @keyframes fadeUp {
@@ -258,6 +270,13 @@
                     <option value="Manhã">Manhã</option>
                     <option value="Noite">Noite</option>
                 </select>
+            </div>
+
+            <div class="w-full md:w-auto flex items-end">
+                <button id="btn-limpar-filtros" 
+                        class="btn-limpar w-full md:w-auto px-4 py-2.5 rounded-lg text-sm font-semibold text-stone-600 flex items-center justify-center gap-2 whitespace-nowrap">
+                    <span>✕</span> Limpar Filtros
+                </button>
             </div>
         </div>
 
@@ -379,6 +398,7 @@
         const selectTurno = document.getElementById('filtro-turno');
         const mensagemVazio = document.getElementById('mensagem-vazio');
         const contador = document.getElementById('contador-resultados');
+        const btnLimpar = document.getElementById('btn-limpar-filtros');
 
         const classesDia = {
             'Segunda-feira': 'dia-segunda',
@@ -387,6 +407,28 @@
             'Quinta-feira': 'dia-quinta',
             'Sexta-feira': 'dia-sexta'
         };
+
+        // Ordem correta dos dias da semana
+        const ordemDias = {
+            'Segunda-feira': 1,
+            'Terça-feira': 2,
+            'Quarta-feira': 3,
+            'Quinta-feira': 4,
+            'Sexta-feira': 5
+        };
+
+        // Ordena os dados por dia > turno > sala
+        function ordenarDados(dados) {
+            return [...dados].sort((a, b) => {
+                const diaA = ordemDias[a.dia] || 99;
+                const diaB = ordemDias[b.dia] || 99;
+                if (diaA !== diaB) return diaA - diaB;
+
+                if (a.turno !== b.turno) return a.turno === 'Manhã' ? -1 : 1;
+
+                return a.sala.localeCompare(b.sala, 'pt-BR', { numeric: true });
+            });
+        }
 
         function renderizarTabela(dados) {
             corpoTabela.innerHTML = '';
@@ -405,7 +447,6 @@
                     const classeTurno = item.turno === 'Manhã' ? 'turno-manha' : 'turno-noite';
                     const classeSala = item.bloco === 'B' ? 'sala-bloco-b' : 'sala-bloco-a';
                     const iconeTurno = item.turno === 'Manhã' ? '☀️' : '🌙';
-                    const iconeSala = item.bloco === 'B' ? '🏛️' : '🔬';
                     
                     const nomeDiaCurto = item.dia.replace('-feira', '');
 
@@ -426,8 +467,7 @@
                         <td class="p-4 text-stone-600 font-medium text-sm">${item.serie}</td>
                         <td class="p-4 text-center">
                             <span class="badge-sala ${classeSala}">
-                                <span>${iconeSala}</span>
-                                Bloco ${item.bloco} · ${item.sala}
+                                BL ${item.bloco} Sala ${item.sala}
                             </span>
                         </td>
                     `;
@@ -439,7 +479,8 @@
         }
 
         function filtrarDados() {
-            const textoBusca = inputBusca.value.toLowerCase();
+            // trim() remove espaços extras no início/fim da busca
+            const textoBusca = inputBusca.value.toLowerCase().trim();
             const diaFiltrado = selectDia.value;
             const turnoFiltrado = selectTurno.value;
 
@@ -452,15 +493,23 @@
                 return textoMatch && diaMatch && turnoMatch;
             });
 
-            renderizarTabela(dadosFiltrados);
+            renderizarTabela(ordenarDados(dadosFiltrados));
+        }
+
+        function limparFiltros() {
+            inputBusca.value = '';
+            selectDia.value = '';
+            selectTurno.value = '';
+            filtrarDados();
         }
 
         inputBusca.addEventListener('input', filtrarDados);
         selectDia.addEventListener('change', filtrarDados);
         selectTurno.addEventListener('change', filtrarDados);
+        btnLimpar.addEventListener('click', limparFiltros);
 
         selectDia.value = ""; 
-        renderizarTabela(dadosSalas);
+        renderizarTabela(ordenarDados(dadosSalas));
     </script>
 </body>
 </html>
