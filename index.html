@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Salas EAD - Anhanguera</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        
+        body {
+            background: 
+                radial-gradient(ellipse at top left, rgba(244, 121, 32, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(244, 121, 32, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%);
+            background-attachment: fixed;
+        }
+
+        .table-container::-webkit-scrollbar { height: 6px; }
+        .table-container::-webkit-scrollbar-track { background: transparent; }
+        .table-container::-webkit-scrollbar-thumb { 
+            background: linear-gradient(90deg, #F47920, #E8651A); 
+            border-radius: 10px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.04),
+                0 10px 20px -5px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .premium-header {
+            background: 
+                linear-gradient(135deg, #F47920 0%, #E8651A 50%, #D4551A 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .premium-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .premium-header::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .badge-dia {
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            border: 2px solid;
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+        }
+        .badge-dia:hover { transform: translateY(-1px); }
+        .badge-dia .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dia-segunda { border-color: #3B82F6; color: #1E40AF; }
+        .dia-segunda .dot { background: #3B82F6; }
+        .dia-terca { border-color: #10B981; color: #065F46; }
+        .dia-terca .dot { background: #10B981; }
+        .dia-quarta { border-color: #8B5CF6; color: #5B21B6; }
+        .dia-quarta .dot { background: #8B5CF6; }
+        .dia-quinta { border-color: #EC4899; color: #9D174D; }
+        .dia-quinta .dot { background: #EC4899; }
+        .dia-sexta { border-color: #F59E0B; color: #92400E; }
+        .dia-sexta .dot { background: #F59E0B; }
+
+        .badge-turno {
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            text-transform: uppercase;
+        }
+        .turno-manha {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+        .turno-noite {
+            background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%);
+            color: #3730A3;
+            border: 1px solid #A5B4FC;
+        }
+
+        .badge-sala {
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: px solid;
+        }
+        .sala-bloco-a {
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+            color: #C2410C;
+            border-color: #FDBA74;
+        }
+        .sala-bloco-b {
+            background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
+            color: #6D28D9;
+            border-color: #C4B5FD;
+        }
+
+        .linha-tabela {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .linha-tabela:hover {
+            background: linear-gradient(90deg, rgba(244, 121, 32, 0.04) 0%, rgba(244, 121, 32, 0.08) 50%, rgba(244, 121, 32, 0.04) 100%);
+            transform: scale(1.002);
+            box-shadow: 0 2px 8px rgba(244, 121, 32, 0.08);
+        }
+
+        .input-premium {
+            transition: all 0.2s ease;
+            background: white;
+        }
+        .input-premium:focus {
+            box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.15), 0 4px 12px rgba(244, 121, 32, 0.1);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeUp 0.4s ease-out forwards;
+        }
+
+        .divider-premium {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(244, 121, 32, 0.3) 50%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="text-stone-800 min-h-screen flex flex-col">
+
+    <!-- CABEÇALHO PREMIUM -->
+    <header class="premium-header text-white shadow-2xl sticky top-0 z-20">
+        <div class="relative z-10 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4 w-full max-w-7xl mx-auto">
+                
+                <div class="h-12 w-12 shrink-0 bg-white rounded-xl shadow-lg flex items-center justify-center p-1.5 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-orange-50 to-orange-100"></div>
+                    
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="relative h-full w-full drop-shadow-md">
+                        <defs>
+                            <linearGradient id="gradLaranja" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FFB347;stop-opacity:1" />
+                                <stop offset="40%" style="stop-color:#F47920;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#C2410C;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="gradBrilho" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+                            </linearGradient>
+                            <filter id="sombraInterna">
+                                <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#7C2D12" flood-opacity="0.3"/>
+                            </filter>
+                        </defs>
+                        
+                        <polygon points="50,8 40,26 60,26" fill="url(#gradLaranja)" filter="url(#sombraInterna)"/>
+                        <polygon points="50,8 44,20 56,20" fill="url(#gradBrilho)"/>
+                        <polygon points="37,28 63,28 70,46 30,46" fill="url(#gradLaranja)" filter="url(#sombraInterna)"/>
+                        <polygon points="37,28 63,28 58,36 42,36" fill="url(#gradBrilho)"/>
+                        <polygon points="27,48 48,48 42,66 17,66" fill="url(#gradLaranja)" filter="url(#sombraInterna)"/>
+                        <polygon points="27,48 48,48 45,55 30,55" fill="url(#gradBrilho)"/>
+                        <polygon points="52,48 73,48 83,66 58,66" fill="url(#gradLaranja)" filter="url(#sombraInterna)"/>
+                        <polygon points="52,48 73,48 70,55 55,55" fill="url(#gradBrilho)"/>
+                        <polygon points="12,68 88,68 93,90 7,90" fill="url(#gradLaranja)" filter="url(#sombraInterna)"/>
+                        <polygon points="12,68 88,68 85,75 15,75" fill="url(#gradBrilho)"/>
+                    </svg>
+                </div>
+                
+                <div class="flex flex-col">
+                    <h1 class="text-2xl font-black tracking-tight text-white leading-none" style="font-family: 'Playfair Display', serif;">
+                        Mapa Salas EAD
+                    </h1>
+                    <p class="text-xs text-orange-100 font-medium tracking-wider uppercase mt-0.5">Faculdade Anhanguera</p>
+                </div>
+            </div>
+        </div>
+        <div class="h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-grow p-4 md:p-6 w-full max-w-7xl mx-auto flex flex-col gap-5">
+        
+        <div class="glass-card p-5 rounded-2xl flex flex-col md:flex-row gap-4 animate-fade-up">
+            
+            <div class="flex-grow">
+                <label class="block text-[0.65rem] font-bold text-stone-500 uppercase tracking-widest mb-1.5">
+                    🔍 Buscar Curso ou Sala
+                </label>
+                <input type="text" id="busca-texto" placeholder="Ex: Enfermagem, sala 21, Lab..." 
+                       class="input-premium w-full p-2.5 border border-stone-200 rounded-lg outline-none text-sm">
+            </div>
+
+            <div class="w-full md:w-52">
+                <label class="block text-[0.65rem] font-bold text-stone-500 uppercase tracking-widest mb-1.5">
+                    📅 Filtrar por Dia
+                </label>
+                <select id="filtro-dia" class="input-premium w-full p-2.5 border border-stone-200 rounded-lg outline-none text-sm bg-white">
+                    <option value="">Todos os Dias</option>
+                    <option value="Segunda-feira">Segunda-feira</option>
+                    <option value="Terça-feira">Terça-feira</option>
+                    <option value="Quarta-feira">Quarta-feira</option>
+                    <option value="Quinta-feira">Quinta-feira</option>
+                    <option value="Sexta-feira">Sexta-feira</option>
+                </select>
+            </div>
+
+            <div class="w-full md:w-40">
+                <label class="block text-[0.65rem] font-bold text-stone-500 uppercase tracking-widest mb-1.5">
+                     Turno
+                </label>
+                <select id="filtro-turno" class="input-premium w-full p-2.5 border border-stone-200 rounded-lg outline-none text-sm bg-white">
+                    <option value="">Todos</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Noite">Noite</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl overflow-hidden animate-fade-up" style="animation-delay: 0.1s;">
+            
+            <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between bg-gradient-to-r from-white to-stone-50">
+                <div class="flex items-center gap-2">
+                    <div class="w-1 h-6 bg-gradient-to-b from-[#F47920] to-[#C2410C] rounded-full"></div>
+                    <h2 class="font-bold text-stone-800 text-sm tracking-tight">Grade de Salas</h2>
+                </div>
+                <span class="text-[0.65rem] font-semibold text-stone-400 uppercase tracking-wider">
+                    Mostrando <span id="contador-resultados" class="text-[#F47920] font-bold text-xs">0</span> turmas
+                </span>
+            </div>
+
+            <div class="overflow-x-auto table-container">
+                <table class="w-full text-sm text-left">
+                    <thead>
+                        <tr class="bg-gradient-to-r from-stone-50 to-stone-100 border-b border-stone-200">
+                            <th class="p-4 font-bold uppercase text-[0.65rem] text-stone-500 tracking-widest">Curso</th>
+                            <th class="p-4 font-bold uppercase text-[0.65rem] text-stone-500 tracking-widest">Dia</th>
+                            <th class="p-4 font-bold uppercase text-[0.65rem] text-stone-500 tracking-widest">Turno</th>
+                            <th class="p-4 font-bold uppercase text-[0.65rem] text-stone-500 tracking-widest">Série</th>
+                            <th class="p-4 font-bold uppercase text-[0.65rem] text-stone-500 tracking-widest text-center">Sala</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo" class="bg-white">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="mensagem-vazio" class="hidden text-center py-12">
+                <div class="text-5xl mb-3">🔍</div>
+                <p class="text-stone-500 font-medium">Nenhuma sala encontrada com estes filtros.</p>
+                <p class="text-stone-400 text-xs mt-1">Tente ajustar sua busca.</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-center gap-2 text-xs text-stone-400 mt-2">
+            <div class="divider-premium flex-grow max-w-[100px]"></div>
+            <span class="font-medium">Sistema de Gestão de Salas EAD</span>
+            <div class="divider-premium flex-grow max-w-[100px]"></div>
+        </div>
+    </main>
+
+    <script>
+        const dadosSalas = [
+            // ========== PERÍODO MATUTINO ==========
+
+            // --- SEGUNDA-FEIRA - MANHÃ ---
+            { dia: 'Segunda-feira', turno: 'Manhã', bloco: 'A', sala: '10', curso: 'ENFERMAGEM', serie: '7º e 8º' },
+
+            // --- TERÇA-FEIRA - MANHÃ ---
+            { dia: 'Terça-feira', turno: 'Manhã', bloco: 'A', sala: '10', curso: 'ENFERMAGEM', serie: '5º e 6º' },
+
+            // --- QUARTA-FEIRA - MANHÃ ---
+            { dia: 'Quarta-feira', turno: 'Manhã', bloco: 'A', sala: '9', curso: 'BIOMEDICINA', serie: '1º e 2º' },
+            { dia: 'Quarta-feira', turno: 'Manhã', bloco: 'A', sala: '9', curso: 'NUTRIÇÃO', serie: '1º e 2º' },
+            { dia: 'Quarta-feira', turno: 'Manhã', bloco: 'A', sala: '9', curso: 'FARMÁCIA', serie: '1º e 2º' },
+            { dia: 'Quarta-feira', turno: 'Manhã', bloco: 'A', sala: '9', curso: 'FISIOTERAPIA', serie: '1º e 2º' },
+            { dia: 'Quarta-feira', turno: 'Manhã', bloco: 'A', sala: '10', curso: 'ENFERMAGEM', serie: '3º e 4º' },
+
+            // ========== PERÍODO NOTURNO ==========
+
+            // --- SEGUNDA-FEIRA - NOITE ---
+            { dia: 'Segunda-feira', turno: 'Noite', bloco: 'A', sala: '17', curso: 'LICENCIATURAS', serie: '1º a 4º' },
+            { dia: 'Segunda-feira', turno: 'Noite', bloco: 'A', sala: '17', curso: 'PEDAGOGIA', serie: '1º a 4º' },
+            { dia: 'Segunda-feira', turno: 'Noite', bloco: 'A', sala: '18', curso: 'RECURSOS HUMANOS', serie: '4º e 5º' },
+            { dia: 'Segunda-feira', turno: 'Noite', bloco: 'A', sala: 'LAB MULTIDISCIPLINAR', curso: 'FARMÁCIA', serie: '8º' },
+            { dia: 'Segunda-feira', turno: 'Noite', bloco: 'B', sala: '21', curso: 'BIOMEDICINA', serie: '7º e 8º' },
+            { dia: 'Segunda-feira', turno: 'Noite', bloco: 'B', sala: '22', curso: 'ENFERMAGEM', serie: '7º e 8º' },
+
+            // --- TERÇA-FEIRA - NOITE ---
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'A', sala: '17', curso: 'EDUCAÇÃO FÍSICA', serie: '5º e 6º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'A', sala: 'LAB INFO 2', curso: 'ANÁLISE E DESENV. DE SISTEMAS', serie: '2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'A', sala: 'LAB MULTIDISCIPLINAR', curso: 'FARMÁCIA', serie: '5º e 6º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '19', curso: 'ENFERMAGEM', serie: '3º e 4º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '21', curso: 'BIOMEDICINA', serie: '6º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '22', curso: 'ENFERMAGEM', serie: '5º e 6º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'ADMINISTRAÇÃO', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'CIÊNCIAS CONTÁBEIS', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'RECURSOS HUMANOS', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'GESTÃO COMERCIAL', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'MARKETING', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'PROCESSOS GERENCIAIS', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'LOGÍSTICA', serie: '1º e 2º' },
+            { dia: 'Terça-feira', turno: 'Noite', bloco: 'B', sala: '24', curso: 'PEDAGOGIA', serie: '7º e 8º' },
+
+            // --- QUARTA-FEIRA - NOITE ---
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'A', sala: '13', curso: 'ENFERMAGEM', serie: '3º e 4º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'A', sala: '16', curso: 'ADMINISTRAÇÃO', serie: '3º e 4º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'A', sala: '16', curso: 'CIÊNCIAS CONTÁBEIS', serie: '3º e 4º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'A', sala: '18', curso: 'FISIOTERAPIA', serie: '1º e 2º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'A', sala: 'LAB INFO 2', curso: 'ANÁLISE E DESENV. DE SISTEMAS', serie: '3º e 4º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'A', sala: 'LAB MULTIDISCIPLINAR', curso: 'FARMÁCIA', serie: '7º e 9º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'B', sala: '19', curso: 'ADMINISTRAÇÃO', serie: '5º, 6º e 8º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'B', sala: '21', curso: 'BIOMEDICINA', serie: '1º, 2º, 3º e 4º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'B', sala: '21', curso: 'NUTRIÇÃO', serie: '1º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'B', sala: '22', curso: 'PEDAGOGIA', serie: '5º e 6º' },
+            { dia: 'Quarta-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'EDUCAÇÃO FÍSICA', serie: '1º, 2º e 3º' },
+
+            // --- QUINTA-FEIRA - NOITE ---
+            { dia: 'Quinta-feira', turno: 'Noite', bloco: 'A', sala: '18', curso: 'FISIOTERAPIA', serie: '3º' },
+            { dia: 'Quinta-feira', turno: 'Noite', bloco: 'A', sala: 'LAB INFO 2', curso: 'ANÁLISE E DESENV. DE SISTEMAS', serie: '5º e 6º' },
+            { dia: 'Quinta-feira', turno: 'Noite', bloco: 'A', sala: 'LAB MULTIDISCIPLINAR', curso: 'FARMÁCIA', serie: '1º, 2º e 3º' },
+            { dia: 'Quinta-feira', turno: 'Noite', bloco: 'B', sala: '19', curso: 'EDUCAÇÃO FÍSICA', serie: '3º e 4º' },
+            { dia: 'Quinta-feira', turno: 'Noite', bloco: 'B', sala: '21', curso: 'ENGENHARIAS', serie: '1º e 2º' },
+
+            // --- SEXTA-FEIRA - NOITE ---
+            { dia: 'Sexta-feira', turno: 'Noite', bloco: 'B', sala: '19', curso: 'CIÊNCIAS CONTÁBEIS', serie: '6º' },
+            { dia: 'Sexta-feira', turno: 'Noite', bloco: 'B', sala: '21', curso: 'SERVIÇO SOCIAL', serie: '2º' },
+            { dia: 'Sexta-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'FONOAUDIOLOGIA', serie: '1º e 2º' },
+            { dia: 'Sexta-feira', turno: 'Noite', bloco: 'B', sala: '23', curso: 'TERAPIA OCUPACIONAL', serie: '1º e 2º' }
+        ];
+
+        const corpoTabela = document.getElementById('tabela-corpo');
+        const inputBusca = document.getElementById('busca-texto');
+        const selectDia = document.getElementById('filtro-dia');
+        const selectTurno = document.getElementById('filtro-turno');
+        const mensagemVazio = document.getElementById('mensagem-vazio');
+        const contador = document.getElementById('contador-resultados');
+
+        const classesDia = {
+            'Segunda-feira': 'dia-segunda',
+            'Terça-feira': 'dia-terca',
+            'Quarta-feira': 'dia-quarta',
+            'Quinta-feira': 'dia-quinta',
+            'Sexta-feira': 'dia-sexta'
+        };
+
+        function renderizarTabela(dados) {
+            corpoTabela.innerHTML = '';
+            
+            if (dados.length === 0) {
+                mensagemVazio.classList.remove('hidden');
+            } else {
+                mensagemVazio.classList.add('hidden');
+                
+                dados.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'linha-tabela';
+                    tr.style.animationDelay = `${index * 0.02}s`;
+                    
+                    const classeDia = classesDia[item.dia] || 'dia-segunda';
+                    const classeTurno = item.turno === 'Manhã' ? 'turno-manha' : 'turno-noite';
+                    const classeSala = item.bloco === 'B' ? 'sala-bloco-b' : 'sala-bloco-a';
+                    const iconeTurno = item.turno === 'Manhã' ? '☀️' : '🌙';
+                    const iconeSala = item.bloco === 'B' ? '🏛️' : '🔬';
+                    
+                    const nomeDiaCurto = item.dia.replace('-feira', '');
+
+                    tr.innerHTML = `
+                        <td class="p-4 font-semibold text-stone-800 text-sm">${item.curso}</td>
+                        <td class="p-4">
+                            <span class="badge-dia ${classeDia}">
+                                <span class="dot"></span>
+                                ${nomeDiaCurto}
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            <span class="badge-turno ${classeTurno}">
+                                <span>${iconeTurno}</span>
+                                ${item.turno}
+                            </span>
+                        </td>
+                        <td class="p-4 text-stone-600 font-medium text-sm">${item.serie}</td>
+                        <td class="p-4 text-center">
+                            <span class="badge-sala ${classeSala}">
+                                <span>${iconeSala}</span>
+                                Bloco ${item.bloco} · ${item.sala}
+                            </span>
+                        </td>
+                    `;
+                    corpoTabela.appendChild(tr);
+                });
+            }
+            
+            contador.textContent = dados.length;
+        }
+
+        function filtrarDados() {
+            const textoBusca = inputBusca.value.toLowerCase();
+            const diaFiltrado = selectDia.value;
+            const turnoFiltrado = selectTurno.value;
+
+            const dadosFiltrados = dadosSalas.filter(item => {
+                const textoMatch = item.curso.toLowerCase().includes(textoBusca) || 
+                                   item.sala.toLowerCase().includes(textoBusca);
+                const diaMatch = diaFiltrado === "" || item.dia === diaFiltrado;
+                const turnoMatch = turnoFiltrado === "" || item.turno === turnoFiltrado;
+                
+                return textoMatch && diaMatch && turnoMatch;
+            });
+
+            renderizarTabela(dadosFiltrados);
+        }
+
+        inputBusca.addEventListener('input', filtrarDados);
+        selectDia.addEventListener('change', filtrarDados);
+        selectTurno.addEventListener('change', filtrarDados);
+
+        selectDia.value = ""; 
+        renderizarTabela(dadosSalas);
+    </script>
+</body>
+</html>
